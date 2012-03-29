@@ -6,6 +6,7 @@ META.yml
 Makefile.PL
 README
 SpeedyFx.xs
+bin/minhash_cmp
 dist.ini
 lib/Text/SpeedyFx.pm
 ppport.h

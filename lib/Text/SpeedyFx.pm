@@ -9,7 +9,7 @@ require Exporter;
 
 our @ISA = qw(Exporter);
 
-our $VERSION = '0.001'; # VERSION
+our $VERSION = '0.002'; # VERSION
 
 require XSLoader;
 XSLoader::load('Text::SpeedyFx', $VERSION);
@@ -27,7 +27,7 @@ Text::SpeedyFx - tokenize/hash large amount of strings efficiently
 
 =head1 VERSION
 
-version 0.001
+version 0.002
 
 =head1 SYNOPSIS
 
@@ -74,6 +74,10 @@ Parses C<$string> and returns a hash reference where keys are hashed tokens and 
 =head2 hash_fv($string, $n)
 
 Parses C<$string> and returns a feature vector with C<$n> elements.
+
+=head2 hash_min($string)
+
+Parses C<$string> and returns the hash with the lowest value.
 
 =head1 REFERENCES
 

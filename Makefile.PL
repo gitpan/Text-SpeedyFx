@@ -15,6 +15,7 @@ my %WriteMakefileArgs = (
     "English" => 0,
     "File::Find" => 0,
     "File::Temp" => 0,
+    "Scalar::Util" => 0,
     "Test::More" => 0,
     "Test::Requires" => 0
   },
@@ -22,17 +23,21 @@ my %WriteMakefileArgs = (
     "ExtUtils::MakeMaker" => "6.30"
   },
   "DISTNAME" => "Text-SpeedyFx",
-  "EXE_FILES" => [],
+  "EXE_FILES" => [
+    "bin/minhash_cmp"
+  ],
   "LICENSE" => "perl",
   "NAME" => "Text::SpeedyFx",
   "PREREQ_PM" => {
     "Exporter" => 0,
+    "File::Slurp" => 0,
+    "List::MoreUtils" => 0,
     "XSLoader" => 0,
     "strict" => 0,
     "utf8" => 0,
     "warnings" => 0
   },
-  "VERSION" => "0.001",
+  "VERSION" => "0.002",
   "test" => {
     "TESTS" => "t/*.t"
   }

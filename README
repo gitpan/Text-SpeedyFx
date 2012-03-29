@@ -2,7 +2,7 @@ NAME
     Text::SpeedyFx - tokenize/hash large amount of strings efficiently
 
 VERSION
-    version 0.001
+    version 0.002
 
 SYNOPSIS
         use Data::Dumper;
@@ -48,6 +48,9 @@ METHODS
 
   hash_fv($string, $n)
     Parses $string and returns a feature vector with $n elements.
+
+  hash_min($string)
+    Parses $string and returns the hash with the lowest value.
 
 REFERENCES
     *   Extremely Fast Text Feature Extraction for Classification and

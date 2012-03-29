@@ -6,6 +6,7 @@ build_requires:
   English: 0
   File::Find: 0
   File::Temp: 0
+  Scalar::Util: 0
   Test::More: 0
   Test::Requires: 0
   perl: 5.006
@@ -20,6 +21,8 @@ meta-spec:
 name: Text-SpeedyFx
 requires:
   Exporter: 0
+  File::Slurp: 0
+  List::MoreUtils: 0
   XSLoader: 0
   perl: 5.010
   strict: 0
@@ -29,4 +32,4 @@ resources:
   bugtracker: https://github.com/creaktive/Text-SpeedyFx/issues
   homepage: https://github.com/creaktive/Text-SpeedyFx
   repository: git://github.com/creaktive/Text-SpeedyFx.git
-version: 0.001
+version: 0.002

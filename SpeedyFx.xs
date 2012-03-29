@@ -4,7 +4,7 @@
 
 #include "ppport.h"
 
-#define MAP_SIZE (1048576 / sizeof(U32))
+#define MAP_SIZE 0x2ffff
 
 typedef struct {
     U32 code_table[MAP_SIZE];
@@ -19,8 +19,37 @@ SpeedyFx *new (U32 seed) {
     U8 u[8];
     UV c;
     STRLEN len;
-    U32 *rand_table = (U32 *) calloc(sizeof(U32), MAP_SIZE);
+    static U8 fold_init = 0;
+    static U32 fold_table[MAP_SIZE];
+    U32 rand_table[MAP_SIZE];
     SpeedyFx *pSpeedyFx = (SpeedyFx *) calloc(1, sizeof(SpeedyFx));
+
+    if (fold_init == 0) {
+        for (i = 0; i < MAP_SIZE; i++) {
+            if (i >= 0xd800 && i <= 0xdfff)         // high/low-surrogate code points
+                c = 0;
+            else if (i >= 0xfdd0 && i <= 0xfdef)    // noncharacters
+                c = 0;
+            else if ((i & 0xffff) == 0xfffe)        // noncharacters
+                c = 0;
+            else if ((i & 0xffff) == 0xffff)        // noncharacters
+                c = 0;
+            else {
+                t = uvchr_to_utf8(s, (UV) i);
+                *t = '\0';
+
+                if (isALNUM_utf8(s)) {
+                    (void) toLOWER_utf8(s, u, &len);
+                    *(u + len) = '\0';
+
+                    c = utf8_to_uvchr(u, &len);
+                } else
+                    c = 0;
+            }
+            fold_table[i] = c;
+        }
+        fold_init = 1;
+    }
 
     rand_table[0]
         = seed
@@ -34,20 +63,10 @@ SpeedyFx *new (U32 seed) {
                 * 0x10a860c1
             ) % 0xfffffffb;
 
-    for (i = 0; i < MAP_SIZE; i++) {
-        t = uvchr_to_utf8(s, (UV)i);
-        *t = '\0';
+    for (i = 0; i < MAP_SIZE; i++)
+        if (fold_table[i])
+            pSpeedyFx->code_table[i] = rand_table[fold_table[i]];
 
-        if (isALNUM_utf8(s)) {
-            (void)toLOWER_utf8(s, u, &len);
-            *(u + len) = '\0';
-
-            c = utf8_to_uvchr(u, &len);
-            pSpeedyFx->code_table[i] = rand_table[c];
-        }
-    }
-
-    free(rand_table);
     return pSpeedyFx;
 }
 
@@ -81,6 +100,7 @@ HV *hash (SpeedyFx *pSpeedyFx, const char *s) {
     UV c;
     STRLEN len;
     HV *r = (HV *) sv_2mortal((SV *) newHV());
+
 
     while (*s) {
         c = utf8_to_uvchr(s, &len);
@@ -130,6 +150,34 @@ AV *hash_fv (SpeedyFx *pSpeedyFx, const char *s, U16 n) {
     return r;
 }
 
+SV *hash_min (SpeedyFx *pSpeedyFx, const char *s) {
+    U32 code;
+    U32 wordhash = 0;
+    U32 min = 0xffffffff;
+    UV c;
+    STRLEN len;
+
+    while (*s) {
+        c = utf8_to_uvchr(s, &len);
+        s += len;
+
+        if (code = pSpeedyFx->code_table[c % MAP_SIZE])
+            wordhash
+                = (wordhash >> 1)
+                + code;
+        else if (wordhash) {
+            if (min > wordhash)
+                min = wordhash;
+
+            wordhash = 0;
+        }
+    }
+    if (wordhash && min > wordhash)
+        min = wordhash;
+
+    return newSVnv(min);
+}
+
 MODULE = Text::SpeedyFx PACKAGE = Text::SpeedyFx
 
 PROTOTYPES: ENABLE
@@ -156,3 +204,8 @@ hash_fv (pSpeedyFx, str, n)
     Text::SpeedyFx pSpeedyFx
     const char *str
     U16 n
+
+SV *
+hash_min (pSpeedyFx, str)
+    Text::SpeedyFx pSpeedyFx
+    const char *str

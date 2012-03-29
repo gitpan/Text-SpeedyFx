@@ -1,0 +1,65 @@
+#!/usr/bin/env perl
+# ABSTRACT: uses MinHash & SpeedyFx to compare large text data
+# PODNAME: minhash_cmp
+use strict;
+use utf8;
+use warnings;
+
+our $VERSION = '0.002'; # VERSION
+
+use File::Slurp;
+use List::MoreUtils qw(distinct);
+use Text::SpeedyFx;
+
+srand 0x4c53_4820;
+my $n = int sprintf q(%0.0f), 1 / (0.1 ** 2);
+
+my $hashes = [];
+push @{$hashes}, Text::SpeedyFx->new(int rand 2 ** 32)
+    for 1 .. $n;
+
+my @text = map {
+    scalar
+        read_file(
+            $_,
+            { binmode => q(:utf8) }
+        )
+} @ARGV;
+
+my $match = 0;
+for my $hash (@{$hashes}) {
+    ++$match
+        if 1 == distinct
+            map {
+                $hash->hash_min($_);
+            } @text;
+}
+
+printf qq(%0.2f\n), $match / $n;
+
+__END__
+=pod
+
+=encoding utf8
+
+=head1 NAME
+
+minhash_cmp - uses MinHash & SpeedyFx to compare large text data
+
+=head1 VERSION
+
+version 0.002
+
+=head1 AUTHOR
+
+Stanislaw Pusep <stas@sysd.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2012 by Stanislaw Pusep.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut
+

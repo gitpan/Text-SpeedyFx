@@ -2,6 +2,7 @@ use strict;
 use utf8;
 use warnings;
 
+use Scalar::Util qw(looks_like_number);
 use Test::More;
 
 use_ok(q(Text::SpeedyFx));
@@ -14,7 +15,7 @@ my $r = $sfx->hash(q(Hello, World!));
 isa_ok($r, q(HASH));
 
 ok(
-    @$r{828691033,828691033} == (1,1),
+    @$r{828691033,2983498205} == (1,1),
     q(hello world)
 );
 
@@ -78,4 +79,15 @@ ok(
     q(feature vector match)
 );
 
-done_testing(12 + $n);
+$r = $sfx->hash_min($str);
+ok(
+    looks_like_number($r),
+    q(hash_min is number)
+);
+
+ok(
+    $r == 106041279,
+    q(hash_min match)
+);
+
+done_testing(14 + $n);
