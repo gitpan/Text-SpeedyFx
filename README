@@ -2,7 +2,7 @@ NAME
     Text::SpeedyFx - tokenize/hash large amount of strings efficiently
 
 VERSION
-    version 0.003
+    version 0.004
 
 SYNOPSIS
         use Data::Dumper;

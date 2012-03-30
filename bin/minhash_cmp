@@ -5,7 +5,7 @@ use strict;
 use utf8;
 use warnings;
 
-our $VERSION = '0.003'; # VERSION
+our $VERSION = '0.004'; # VERSION
 
 
 use File::Slurp;
@@ -13,9 +13,6 @@ use Getopt::Long;
 use List::MoreUtils qw(distinct);
 use Pod::Usage;
 use Text::SpeedyFx;
-
-my $file_b = pop @ARGV;
-my $file_a = pop @ARGV;
 
 GetOptions(
     q(help)             => \my $help,
@@ -25,9 +22,7 @@ GetOptions(
     q(seed=i)           => \my $seed,
 ) or pod2usage(q(-verbose) => 1);
 pod2usage(q(-verbose) => 1)
-    if $help
-        or not defined $file_a
-        or not defined $file_b;
+    if $help or $#ARGV != 1;
 
 $e //= 0.05;
 $k //= 0 + sprintf
@@ -44,7 +39,7 @@ my @text = map {
         $_,
         { binmode => $binmode // q(:utf8) }
     )
-} ($file_a, $file_b);
+} @ARGV;
 
 my $match = 0;
 for my $hash (@{$hashes}) {
@@ -68,7 +63,7 @@ minhash_cmp - uses MinHash & SpeedyFx to compare large text data
 
 =head1 VERSION
 
-version 0.003
+version 0.004
 
 =head1 SYNOPSIS
 

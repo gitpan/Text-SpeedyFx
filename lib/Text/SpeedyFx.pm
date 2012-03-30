@@ -9,7 +9,7 @@ require Exporter;
 
 our @ISA = qw(Exporter);
 
-our $VERSION = '0.003'; # VERSION
+our $VERSION = '0.004'; # VERSION
 
 require XSLoader;
 XSLoader::load('Text::SpeedyFx', $VERSION);
@@ -27,7 +27,7 @@ Text::SpeedyFx - tokenize/hash large amount of strings efficiently
 
 =head1 VERSION
 
-version 0.003
+version 0.004
 
 =head1 SYNOPSIS
 
