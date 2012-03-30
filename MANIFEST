@@ -8,11 +8,13 @@ README
 SpeedyFx.xs
 bin/minhash_cmp
 dist.ini
+eg/benchmark.pl
 lib/Text/SpeedyFx.pm
 ppport.h
 t/00-compile.t
 t/00-load.t
 t/10-tiny.t
+t/20-small.t
 t/author-critic.t
 t/author-test-eol.t
 t/release-cpan-changes.t

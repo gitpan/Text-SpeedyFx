@@ -12,6 +12,7 @@ my %WriteMakefileArgs = (
   "ABSTRACT" => "tokenize/hash large amount of strings efficiently",
   "AUTHOR" => "Stanislaw Pusep <stas\@sysd.org>",
   "BUILD_REQUIRES" => {
+    "Data::Dumper" => 0,
     "English" => 0,
     "File::Find" => 0,
     "File::Temp" => 0,
@@ -31,13 +32,15 @@ my %WriteMakefileArgs = (
   "PREREQ_PM" => {
     "Exporter" => 0,
     "File::Slurp" => 0,
+    "Getopt::Long" => 0,
     "List::MoreUtils" => 0,
+    "Pod::Usage" => 0,
     "XSLoader" => 0,
     "strict" => 0,
     "utf8" => 0,
     "warnings" => 0
   },
-  "VERSION" => "0.002",
+  "VERSION" => "0.003",
   "test" => {
     "TESTS" => "t/*.t"
   }
