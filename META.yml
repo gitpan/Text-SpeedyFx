@@ -9,12 +9,10 @@ build_requires:
   File::Temp: 0
   Scalar::Util: 0
   Test::More: 0
-  Test::Requires: 0
-  perl: 5.006
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300012, CPAN::Meta::Converter version 2.120900'
+generated_by: 'Dist::Zilla version 4.300014, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -35,4 +33,4 @@ resources:
   bugtracker: https://github.com/creaktive/Text-SpeedyFx/issues
   homepage: https://github.com/creaktive/Text-SpeedyFx
   repository: git://github.com/creaktive/Text-SpeedyFx.git
-version: 0.004
+version: 0.005

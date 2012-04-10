@@ -2,7 +2,7 @@ NAME
     Text::SpeedyFx - tokenize/hash large amount of strings efficiently
 
 VERSION
-    version 0.004
+    version 0.005
 
 SYNOPSIS
         use Data::Dumper;
@@ -19,15 +19,9 @@ SYNOPSIS
         #          '3087870273' => '1'
         #        };
 
-        my $feature_vector = $sfx->hash_fv("thats the question", 5);
-        print Dumper $feature_vector;
-        #$VAR1 = [
-        #          '0',
-        #          '1',
-        #          '0',
-        #          '1',
-        #          '0'
-        #        ];
+        my $feature_vector = $sfx->hash_fv("thats the question", 8);
+        print unpack('b*', $feature_vector);
+        # 01001000
 
 DESCRIPTION
     XS implementation of a very fast combined parser/hasher which works well
@@ -43,20 +37,34 @@ METHODS
     1).
 
   hash($string)
-    Parses $string and returns a hash reference where keys are hashed tokens
-    and values are respective count.
+    Parses $string and returns a hash reference where keys are the hashed
+    tokens and values are their respective count. Note that this is the
+    slowest form due to the (computational) complexity of the Perl hash
+    structure itself: "hash_fv()" is 147% faster, while "hash_min()" is 175%
+    faster.
 
   hash_fv($string, $n)
-    Parses $string and returns a feature vector with $n elements.
+    Parses $string and returns a feature vector (string of bits) with length
+    $n. $n is supposed to be a multiplier of 8, as the length of the
+    resulting feature vector is "ceil($n / 8)". Feature vector format can be
+    useful in Bloom filter <http://en.wikipedia.org/wiki/Bloom_filter>
+    implementation, for instance.
 
   hash_min($string)
-    Parses $string and returns the hash with the lowest value.
+    Parses $string and returns the hash with the lowest value. Useful in
+    MinHash <http://en.wikipedia.org/wiki/MinHash> implementation. See also
+    the included minhash_cmp utility.
 
 REFERENCES
     *   Extremely Fast Text Feature Extraction for Classification and
         Indexing <http://www.hpl.hp.com/techreports/2008/HPL-2008-91R1.pdf>
         by George Forman <http://www.hpl.hp.com/personal/George_Forman/> and
         Evan Kirshenbaum <http://www.kirshenbaum.net/evan/index.htm>
+
+    *   MinHash — выявляем похожие множества
+        <http://habrahabr.ru/post/115147/>
+
+    *   Фильтр Блума <http://habrahabr.ru/post/112069/>
 
 AUTHOR
     Stanislaw Pusep <stas@sysd.org>
