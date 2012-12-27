@@ -1,14 +1,14 @@
 #!/usr/bin/env perl
 # ABSTRACT: uses MinHash & SpeedyFx to compare large text data
 # PODNAME: minhash_cmp
+use autodie;
 use strict;
 use utf8;
 use warnings;
 
-our $VERSION = '0.005'; # VERSION
+our $VERSION = '0.006'; # VERSION
 
 
-use File::Slurp;
 use Getopt::Long;
 use List::MoreUtils qw(distinct);
 use Pod::Usage;
@@ -16,29 +16,39 @@ use Text::SpeedyFx;
 
 GetOptions(
     q(help)             => \my $help,
-    q(binmode=s)        => \my $binmode,
     q(epsilon=f)        => \my $e,
     q(k=i)              => \my $k,
     q(seed=i)           => \my $seed,
-) or pod2usage(q(-verbose) => 1);
-pod2usage(q(-verbose) => 1)
+    q(bits=i)           => \my $bits,
+) or pod2usage(-verbose => 1);
+pod2usage(-verbose => 2)
     if $help or $#ARGV != 1;
 
-$e //= 0.05;
-$k //= 0 + sprintf
+$e = 0.05
+    unless $e;
+$k = 0 + sprintf
     q(%0.0f),
-    1 / ($e ** 2);
+    1 / ($e ** 2)
+    unless $k;
+$seed = 0x4c53_4820
+    unless $seed;
+$bits = 8
+    unless $bits;
 
 my $hashes = [];
-srand($seed // 0x4c53_4820);
-push @{$hashes}, Text::SpeedyFx->new(int rand 2 ** 32)
+srand $seed;
+push @{$hashes}, Text::SpeedyFx->new(int rand 2 ** 32, $bits)
     for 1 .. $k;
 
 my @text = map {
-    '' . read_file(
-        $_,
-        { binmode => $binmode // q(:utf8) }
-    )
+    sub {
+        open my $fh, q(<:mmap), shift;
+        local $/ = undef;
+        my $data = <$fh>;
+        close $fh;
+
+        return $data;
+    }->($_)
 } @ARGV;
 
 my $match = 0;
@@ -53,6 +63,7 @@ for my $hash (@{$hashes}) {
 printf qq(k=%d; similarity=%0.5f\n), $k, $match / $k;
 
 __END__
+
 =pod
 
 =encoding utf8
@@ -63,7 +74,7 @@ minhash_cmp - uses MinHash & SpeedyFx to compare large text data
 
 =head1 VERSION
 
-version 0.005
+version 0.006
 
 =head1 SYNOPSIS
 
@@ -81,11 +92,6 @@ MinHash (or the min-wise independent permutations locality sensitive hashing sch
 
 This.
 
-=item --binmode
-
-You can use this to set the file to be read in binary mode (C<:raw>), C<:utf8>, etc.
-Default: C<:utf8>
-
 =item --epsilon
 
 Expected error value used to compute the number of different hash functions (default: 0.05).
@@ -98,12 +104,17 @@ Number of different hash functions to use (default: 400; overrides C<--epsilon>)
 
 Custom seed (integer).
 
+=item --bits
+
+How many bits do represent one character.
+The default value, 8, sacrifices Unicode handling but is fast and low on memory footprint.
+The value of 18 encompasses I<Basic Multilingual>, I<Supplementary Multilingual> and I<Supplementary Ideographic> planes.
+
 =back
 
 =head1 CAVEATS
 
-Uses B<MANY RAM>!!!
-Each initialized hash function wastes ~2MB.
+Under C<bits=18> setting, each initialized hash function consumes ~500KB.
 
 =head1 SEE ALSO
 
@@ -131,4 +142,3 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-

@@ -2,7 +2,7 @@ NAME
     Text::SpeedyFx - tokenize/hash large amount of strings efficiently
 
 VERSION
-    version 0.005
+    version 0.006
 
 SYNOPSIS
         use Data::Dumper;
@@ -32,28 +32,89 @@ DESCRIPTION
     and was adapted for a better Unicode compliance.
 
 METHODS
-  new([$seed])
-    Initialize parser/hasher, optionally using a specified $seed (default:
-    1).
+  new([$seed, $bits])
+    Initialize parser/hasher, can be customized with the options:
 
-  hash($string)
-    Parses $string and returns a hash reference where keys are the hashed
-    tokens and values are their respective count. Note that this is the
-    slowest form due to the (computational) complexity of the Perl hash
-    structure itself: "hash_fv()" is 147% faster, while "hash_min()" is 175%
-    faster.
+    $seed
+        Hash seed (default: 1).
 
-  hash_fv($string, $n)
-    Parses $string and returns a feature vector (string of bits) with length
+    $bits
+        How many bits do represent one character. The default value, 8,
+        sacrifices Unicode handling but is fast and low on memory footprint.
+        The value of 18 encompasses *Basic Multilingual*, *Supplementary
+        Multilingual* and *Supplementary Ideographic* planes. See also
+        "UNICODE SUPPORT"
+
+  hash($octets)
+    Parses $octets and returns a hash reference where keys are the hashed
+    tokens and values are their respective count. $octets are assumed to
+    represent UTF-8 string unless Text::SpeedyFx is instantiated with
+    "$bits" == 8 (which forces Latin-1 mode, see "UNICODE SUPPORT"). Note
+    that this is the slowest form due to the (computational) complexity of
+    the Perl hash structure itself: "hash_fv()" is 350% faster, while
+    "hash_min()" is up to 400% faster.
+
+  hash_fv($octets, $n)
+    Parses $octets and returns a feature vector (string of bits) with length
     $n. $n is supposed to be a multiplier of 8, as the length of the
-    resulting feature vector is "ceil($n / 8)". Feature vector format can be
-    useful in Bloom filter <http://en.wikipedia.org/wiki/Bloom_filter>
-    implementation, for instance.
+    resulting feature vector is "ceil($n / 8)". See the included utilities
+    cosine_sim and uniq_wc.
 
-  hash_min($string)
-    Parses $string and returns the hash with the lowest value. Useful in
+  hash_min($octets)
+    Parses $octets and returns the hash with the lowest value. Useful in
     MinHash <http://en.wikipedia.org/wiki/MinHash> implementation. See also
     the included minhash_cmp utility.
+
+UNICODE SUPPORT
+    Due to the nature of Perl, Unicode support is handled differently from
+    the original implementation. By default, Text::SpeedyFx recognizes UTF-8
+    encoded code points in the range *00000-2FFFF*:
+
+    *   Plane 0, the Basic Multilingual Plane (BMP, *0000–FFFF*)
+
+    *   Plane 1, the Supplementary Multilingual Plane (SMP, *10000–1FFFF*)
+
+    *   Plane 2, the Supplementary Ideographic Plane (SIP, *20000–2FFFF*)
+
+    *   There are planes up to 16; however, as in Perl v5.16.2, there are no
+        code points matching "isALNUM_utf8()" there (so it's irrelevant for
+        proper algorithm operation).
+
+    Although, there is a major drawback: in this mode, each instance
+    allocates up to 1 MB of memory.
+
+    If the application doesn't need to support code points beyond the Plane
+    0 (like the original SpeedyFx implementation) it is possible to
+    constraint the address space to 16 bits, which lowers memory allocation
+    to up to 256 KB. In fact, Text::SpeedyFx constructor accepts bit range
+    between 8 and 18 to address code points.
+
+  LATIN-1 SUPPORT
+    8 bit address space has one special meaning: it completely disables
+    multibyte support. In 8 bit mode, each instance will only allocate 256
+    bytes and hashing will be run up to 66% faster. Tokenization will
+    fallback to *ISO 8859-1 West European languages (Latin-1)* character
+    definitions.
+
+BENCHMARK
+    The test platform configuration:
+
+    *   Intel® Core™ i7-2600 CPU @ 3.40GHz with 8 GB RAM;
+
+    *   Ubuntu 11.10 (64-bit);
+
+    *   Perl v5.16.2 (installed via perlbrew);
+
+    *   enwik8 from the Large Text Compression Benchmark
+        <https://cs.fit.edu/~mmahoney/compression/text.html>.
+
+                         Rate     hash  hash_min_utf8  hash_fv  hash_min
+        hash           19.5 MB/s    --           -68%     -78%      -80%
+        hash_min_utf8  60.2 MB/s  209%             --     -34%      -40%
+        hash_fv        90.5 MB/s  364%            50%       --       -9%
+        hash_min       99.6 MB/s  411%            66%      10%        --
+
+    All the tests except "hash_min_utf8" were made in Latin-1 mode.
 
 REFERENCES
     *   Extremely Fast Text Feature Extraction for Classification and
@@ -65,6 +126,8 @@ REFERENCES
         <http://habrahabr.ru/post/115147/>
 
     *   Фильтр Блума <http://habrahabr.ru/post/112069/>
+
+    *   cosine_sim, minhash_cmp and uniq_wc utilities from this distribution
 
 AUTHOR
     Stanislaw Pusep <stas@sysd.org>

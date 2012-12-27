@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use 5.010;
+use 5.008;
 
 use ExtUtils::MakeMaker 6.30;
 
@@ -13,7 +13,6 @@ my %WriteMakefileArgs = (
   "AUTHOR" => "Stanislaw Pusep <stas\@sysd.org>",
   "BUILD_REQUIRES" => {
     "Data::Dumper" => 0,
-    "English" => 0,
     "File::Find" => 0,
     "File::Temp" => 0,
     "Scalar::Util" => 0,
@@ -24,22 +23,25 @@ my %WriteMakefileArgs = (
   },
   "DISTNAME" => "Text-SpeedyFx",
   "EXE_FILES" => [
-    "bin/minhash_cmp"
+    "bin/cosine_sim",
+    "bin/minhash_cmp",
+    "bin/uniq_wc"
   ],
   "LICENSE" => "perl",
   "NAME" => "Text::SpeedyFx",
   "PREREQ_PM" => {
     "Exporter" => 0,
-    "File::Slurp" => 0,
     "Getopt::Long" => 0,
     "List::MoreUtils" => 0,
     "Pod::Usage" => 0,
     "XSLoader" => 0,
+    "autodie" => 0,
+    "base" => 0,
     "strict" => 0,
     "utf8" => 0,
     "warnings" => 0
   },
-  "VERSION" => "0.005",
+  "VERSION" => "0.006",
   "test" => {
     "TESTS" => "t/*.t"
   }
