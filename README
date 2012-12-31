@@ -2,7 +2,7 @@ NAME
     Text::SpeedyFx - tokenize/hash large amount of strings efficiently
 
 VERSION
-    version 0.006
+    version 0.007
 
 SYNOPSIS
         use Data::Dumper;
@@ -51,8 +51,8 @@ METHODS
     represent UTF-8 string unless Text::SpeedyFx is instantiated with
     "$bits" == 8 (which forces Latin-1 mode, see "UNICODE SUPPORT"). Note
     that this is the slowest form due to the (computational) complexity of
-    the Perl hash structure itself: "hash_fv()" is 350% faster, while
-    "hash_min()" is up to 400% faster.
+    the Perl hash structure itself: "hash_fv()"/"hash_min()" variants are up
+    to 1000% faster!
 
   hash_fv($octets, $n)
     Parses $octets and returns a feature vector (string of bits) with length
@@ -92,29 +92,38 @@ UNICODE SUPPORT
   LATIN-1 SUPPORT
     8 bit address space has one special meaning: it completely disables
     multibyte support. In 8 bit mode, each instance will only allocate 256
-    bytes and hashing will be run up to 66% faster. Tokenization will
-    fallback to *ISO 8859-1 West European languages (Latin-1)* character
-    definitions.
+    bytes and hashing will run up to 300% faster! Tokenization will fallback
+    to *ISO 8859-1 West European languages (Latin-1)* character definitions.
 
 BENCHMARK
     The test platform configuration:
 
-    *   Intel® Core™ i7-2600 CPU @ 3.40GHz with 8 GB RAM;
+    *   Intel® Xeon® E5620 CPU @ 2.40GHz (similar to the one cited in the
+        reference paper);
 
-    *   Ubuntu 11.10 (64-bit);
+    *   Debian 6.0.6 (Squeeze, 64-bit);
 
-    *   Perl v5.16.2 (installed via perlbrew);
+    *   Perl v5.16.1 (installed via perlbrew);
 
     *   enwik8 from the Large Text Compression Benchmark
         <https://cs.fit.edu/~mmahoney/compression/text.html>.
 
-                         Rate     hash  hash_min_utf8  hash_fv  hash_min
-        hash           19.5 MB/s    --           -68%     -78%      -80%
-        hash_min_utf8  60.2 MB/s  209%             --     -34%      -40%
-        hash_fv        90.5 MB/s  364%            50%       --       -9%
-        hash_min       99.6 MB/s  411%            66%      10%        --
+                          Rate murmur_utf8 hash_utf8    hash hash_fv_utf8 hash_min hash_fv
+        murmur_utf8     6 MB/s          --      -53%    -62%         -87%     -97%    -97%
+        hash_utf8      13 MB/s        111%        --    -19%         -73%     -93%    -93%
+        hash           16 MB/s        161%       23%      --         -67%     -91%    -92%
+        hash_fv_utf8   49 MB/s        693%      275%    204%           --     -73%    -75%
+        hash_min      179 MB/s       2815%     1278%   1018%         267%       --     -7%
+        hash_fv       193 MB/s       3045%     1387%   1106%         296%       8%      --
 
-    All the tests except "hash_min_utf8" were made in Latin-1 mode.
+    All the tests except the ones with "_utf8" suffix were made in Latin-1
+    mode. For comparison, "murmur_utf8" was implemented using
+    Digest::MurmurHash hasher and native regular expression tokenizer:
+
+        ++$fv->{murmur_hash(lc $1)}
+            while $data =~ /(\w+)/gx;
+
+    See also the eg/benchmark.pl script.
 
 REFERENCES
     *   Extremely Fast Text Feature Extraction for Classification and

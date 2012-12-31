@@ -1,6 +1,28 @@
 Changelog for Text-SpeedyFx
 
-0.006 2012-12-27T22:46:51
+0.007 2012-12-31T01:51:01
+ [Stanislaw Pusep <creaktive@gmail.com>]
+ - updated benchmark results (yep, it is that faster, even on the lower
+   clock!
+
+ - less indirections
+
+ - micro-optimizations for latin1
+
+ - macro rampage
+
+ - macros cleanup
+
+ - .gitignore update
+
+ - no more warnings under Clang
+
+ - added murmur to benchmark for comparison
+
+ - replaced sprintf() by custom itoa()
+
+
+v0.006 2012-12-27T22:46:31
  [Stanislaw Pusep <creaktive@gmail.com>]
  - minor fixes
 

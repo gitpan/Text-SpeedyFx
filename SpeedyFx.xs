@@ -14,10 +14,12 @@ typedef struct {
 typedef SpeedyFx *Text__SpeedyFx;
 
 #if PERL_VERSION >= 16
-#define ChrCode(u, v, len) utf8_to_uvchr_buf(u, v, len);
+#define ChrCode(u, v, len) (U32) utf8_to_uvchr_buf(u, v, len);
 #else
-#define ChrCode(u, v, len) utf8_to_uvchr(u, len)
+#define ChrCode(u, v, len) (U32) utf8_to_uvchr(u, len)
 #endif
+
+#define SetBit(a, b) (((U8 *) a)[(b) >> 3] |= (1 << ((b) & 7)))
 
 SpeedyFx *new (U32 seed, U8 bits) {
     U32 i;
@@ -47,6 +49,7 @@ SpeedyFx *new (U32 seed, U8 bits) {
     pSpeedyFx->length = length;
     code_table = pSpeedyFx->code_table;
 
+    fold_table[0] = 0;
     if (fold_init < length) {
         for (i = fold_init + 1; i < length; i++) {
             if (i >= 0xd800 && i <= 0xdfff)         // high/low-surrogate code points
@@ -106,85 +109,79 @@ void DESTROY (SpeedyFx *pSpeedyFx) {
     Safefree(pSpeedyFx);
 }
 
-void _store(HV *r, U32 *wordhash) {
+/**
+ * C++ version 0.4 char* style "itoa":
+ * Written by Lukás Chmela
+ * Released under GPLv3.
+ * http://www.jb.man.ac.uk/~slowe/cpp/itoa.html#newest
+ */
+U32 _itoa(U32 value, char *result) {
+    char *ptr = result, *ptr1 = result, tmp_char;
+    U32 tmp_value, len;
+
+    do {
+        tmp_value = value;
+        value /= 10;
+        *ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz" [35 + (tmp_value - value * 10)];
+    } while (value);
+
+    len = ptr - result;
+    *ptr-- = '\0';
+
+    while (ptr1 < ptr) {
+        tmp_char = *ptr;
+        *ptr--= *ptr1;
+        *ptr1++ = tmp_char;
+    }
+
+    return len;
+}
+
+void _store(HV *r, U32 wordhash) {
     double count = 1;
-    U8 buf[16];
-    U8 len;
+    char buf[16];
+    U32 len;
     SV **ps;
 
-    if (*wordhash) {
-        sprintf(buf, "%u", (unsigned int) *wordhash);
-        len = strlen(buf);
+    if (wordhash) {
+        len = _itoa(wordhash, buf);
 
         ps = hv_fetch(r, buf, len, 0);
         if (ps && SvOK(*ps))
             count = SvNV(*ps) + 1;
 
-        hv_store(r, buf, len, newSVnv(count), 0);
+        ps = hv_store(r, buf, len, newSVnv(count), 0);
     }
 }
 
-#ifndef _SPEEDYFX
-#define _SPEEDYFX(_STORE)                       \
-    STMT_START {                                \
-        U32 code;                               \
-        U32 wordhash = 0;                       \
-        UV c;                                   \
-        STRLEN len;                             \
-        U32 length = pSpeedyFx->length;         \
-        U32 *code_table = pSpeedyFx->code_table;\
-        U8 is_utf8 = (length > 256) ? 1 : 0;    \
-        const U8 *s, *se;                       \
-        s = SvPV(str, len);                     \
-        se = s + len;                           \
-        while (*s) {                            \
-            if (is_utf8) {                      \
-                c = ChrCode(s, se, &len);       \
-                s += len;                       \
-            } else                              \
-                c = *s++;                       \
-            if (code = code_table[c % length])  \
-                wordhash                        \
-                    = (wordhash >> 1)           \
-                    + code;                     \
-            else if (wordhash) {                \
-                _STORE;                         \
-                wordhash = 0;                   \
-            }                                   \
-        }                                       \
-        if (wordhash) {                         \
-            _STORE;                             \
-        }                                       \
+#define _SPEEDYFX_INIT                                  \
+    U32 code, c;                                        \
+    U32 wordhash = 0;                                   \
+    STRLEN len;                                         \
+    U32 length = pSpeedyFx->length;                     \
+    U32 *code_table = pSpeedyFx->code_table;            \
+    U8 *s, *se;                                         \
+    s = (U8 *) SvPV(str, len);                          \
+    se = s + len;
+
+#define _WALK_LATIN1    c = *s++
+#define _WALK_UTF8      c = ChrCode(s, se, &len); s += len
+
+#define _SPEEDYFX(_STORE, _WALK, _LENGTH)               \
+    STMT_START {                                        \
+        while (*s) {                                    \
+            _WALK;                                      \
+            if ((code = code_table[c % _LENGTH]) != 0)  \
+                wordhash = (wordhash >> 1) + code;      \
+            else if (wordhash) {                        \
+                _STORE;                                 \
+                wordhash = 0;                           \
+            }                                           \
+        }                                               \
+        if (wordhash) {                                 \
+            _STORE;                                     \
+        }                                               \
     } STMT_END
-#endif
-
-HV *hash (SpeedyFx *pSpeedyFx, SV *str) {
-    HV *r = (HV *) sv_2mortal((SV *) newHV());
-
-    _SPEEDYFX(_store(r, &wordhash));
-
-    return r;
-}
-
-#define SetBit(a, b) (((U8 *) a)[(b) >> 3] |= (1 << ((b) & 7)))
-
-SV *hash_fv (SpeedyFx *pSpeedyFx, SV *str, U32 n) {
-    U32 size = ceil((float) n / 8.0);
-    U8 *fv;
-    Newxz(fv, size, U8);
-
-    _SPEEDYFX(SetBit(fv, wordhash % n));
-
-    return newSVpv(fv, size);
-}
-
-SV *hash_min (SpeedyFx *pSpeedyFx, SV *str) {
-    U32 min = 0xffffffff;
-
-    _SPEEDYFX(if (min > wordhash) min = wordhash);
-
-    return newSVnv(min);
-}
 
 MODULE = Text::SpeedyFx PACKAGE = Text::SpeedyFx
 
@@ -206,18 +203,56 @@ CODE:
 OUTPUT:
     RETVAL
 
-HV *
+void
 hash (pSpeedyFx, str)
     Text::SpeedyFx pSpeedyFx
     SV *str
+INIT:
+    _SPEEDYFX_INIT;
+    HV *results = newHV();
+PPCODE:
+    if (length > 256) {
+        _SPEEDYFX(_store(results, wordhash), _WALK_UTF8, length);
+    } else {
+        _SPEEDYFX(_store(results, wordhash), _WALK_LATIN1, 256);
+    }
 
-SV *
+    ST(0) = sv_2mortal((SV *) newRV_noinc((SV *) results));
+    XSRETURN(1);
+
+void
 hash_fv (pSpeedyFx, str, n)
     Text::SpeedyFx pSpeedyFx
     SV *str
     U32 n
+INIT:
+    _SPEEDYFX_INIT;
+    U32 size = ceil((float) n / 8.0);
+    char *fv;
+    Newxz(fv, size, char);
+PPCODE:
+    if (length > 256) {
+        _SPEEDYFX(SetBit(fv, wordhash % n), _WALK_UTF8, length);
+    } else {
+        _SPEEDYFX(SetBit(fv, wordhash % n), _WALK_LATIN1, 256);
+    }
 
-SV *
+    ST(0) = sv_2mortal(newSVpv(fv, size));
+    XSRETURN(1);
+
+void
 hash_min (pSpeedyFx, str)
     Text::SpeedyFx pSpeedyFx
     SV *str
+INIT:
+    _SPEEDYFX_INIT;
+    U32 min = 0xffffffff;
+PPCODE:
+    if (length > 256) {
+        _SPEEDYFX(if (min > wordhash) min = wordhash, _WALK_UTF8, length);
+    } else {
+        _SPEEDYFX(if (min > wordhash) min = wordhash, _WALK_LATIN1, 256);
+    }
+
+    ST(0) = sv_2mortal(newSVnv(min));
+    XSRETURN(1);
