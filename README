@@ -2,7 +2,7 @@ NAME
     Text::SpeedyFx - tokenize/hash large amount of strings efficiently
 
 VERSION
-    version 0.007
+    version 0.008
 
 SYNOPSIS
         use Data::Dumper;
@@ -58,7 +58,7 @@ METHODS
     Parses $octets and returns a feature vector (string of bits) with length
     $n. $n is supposed to be a multiplier of 8, as the length of the
     resulting feature vector is "ceil($n / 8)". See the included utilities
-    cosine_sim and uniq_wc.
+    cosine_cmp and uniq_wc.
 
   hash_min($octets)
     Parses $octets and returns the hash with the lowest value. Useful in
@@ -136,7 +136,7 @@ REFERENCES
 
     *   Фильтр Блума <http://habrahabr.ru/post/112069/>
 
-    *   cosine_sim, minhash_cmp and uniq_wc utilities from this distribution
+    *   cosine_cmp, minhash_cmp and uniq_wc utilities from this distribution
 
 AUTHOR
     Stanislaw Pusep <stas@sysd.org>

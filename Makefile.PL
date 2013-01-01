@@ -23,7 +23,7 @@ my %WriteMakefileArgs = (
   },
   "DISTNAME" => "Text-SpeedyFx",
   "EXE_FILES" => [
-    "bin/cosine_sim",
+    "bin/cosine_cmp",
     "bin/minhash_cmp",
     "bin/uniq_wc"
   ],
@@ -41,7 +41,7 @@ my %WriteMakefileArgs = (
     "utf8" => 0,
     "warnings" => 0
   },
-  "VERSION" => "0.007",
+  "VERSION" => "0.008",
   "test" => {
     "TESTS" => "t/*.t"
   }

@@ -6,7 +6,7 @@ META.yml
 Makefile.PL
 README
 SpeedyFx.xs
-bin/cosine_sim
+bin/cosine_cmp
 bin/minhash_cmp
 bin/uniq_wc
 dist.ini

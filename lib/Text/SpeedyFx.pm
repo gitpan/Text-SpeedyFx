@@ -7,7 +7,7 @@ use warnings;
 
 use base q(Exporter);
 
-our $VERSION = '0.007'; # VERSION
+our $VERSION = '0.008'; # VERSION
 
 require XSLoader;
 XSLoader::load('Text::SpeedyFx', $VERSION);
@@ -26,7 +26,7 @@ Text::SpeedyFx - tokenize/hash large amount of strings efficiently
 
 =head1 VERSION
 
-version 0.007
+version 0.008
 
 =head1 SYNOPSIS
 
@@ -87,7 +87,7 @@ C<hash_fv()>/C<hash_min()> variants are up to 1000% faster!
 
 Parses C<$octets> and returns a feature vector (string of bits) with length C<$n>.
 C<$n> is supposed to be a multiplier of 8, as the length of the resulting feature vector is C<ceil($n / 8)>.
-See the included utilities L<cosine_sim> and L<uniq_wc>.
+See the included utilities L<cosine_cmp> and L<uniq_wc>.
 
 =head2 hash_min($octets)
 
@@ -190,7 +190,7 @@ L<Фильтр Блума|http://habrahabr.ru/post/112069/>
 
 =item *
 
-L<cosine_sim>, L<minhash_cmp> and L<uniq_wc> utilities from this distribution
+L<cosine_cmp>, L<minhash_cmp> and L<uniq_wc> utilities from this distribution
 
 =back
 

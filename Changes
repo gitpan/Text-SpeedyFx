@@ -1,6 +1,13 @@
 Changelog for Text-SpeedyFx
 
-0.007 2012-12-31T01:51:01
+0.008 2013-01-01T21:37:48
+ [Stanislaw Pusep <creaktive@gmail.com>]
+ - renamed cosine_sim to cosine_cmp (to keep consistence with minhash_cmp)
+
+ - fixed function name clash (_itoa already present on Win32)
+
+
+v0.007 2012-12-31T01:50:24
  [Stanislaw Pusep <creaktive@gmail.com>]
  - updated benchmark results (yep, it is that faster, even on the lower
    clock!
