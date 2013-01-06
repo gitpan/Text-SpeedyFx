@@ -7,7 +7,7 @@ use warnings;
 
 use base q(Exporter);
 
-our $VERSION = '0.008'; # VERSION
+our $VERSION = '0.009'; # VERSION
 
 require XSLoader;
 XSLoader::load('Text::SpeedyFx', $VERSION);
@@ -26,7 +26,7 @@ Text::SpeedyFx - tokenize/hash large amount of strings efficiently
 
 =head1 VERSION
 
-version 0.008
+version 0.009
 
 =head1 SYNOPSIS
 
@@ -77,11 +77,11 @@ See also L</UNICODE SUPPORT>
 
 =head2 hash($octets)
 
-Parses C<$octets> and returns a hash reference where keys are the hashed tokens and values are their respective count.
+Parses C<$octets> and returns a hash reference (not exactly; see L</CAVEAT>) where keys are the hashed tokens and values are their respective count.
 C<$octets> are assumed to represent UTF-8 string unless L<Text::SpeedyFx> is instantiated with L</$bits> == 8
 (which forces Latin-1 mode, see L</UNICODE SUPPORT>).
-Note that this is the slowest form due to the (computational) complexity of the Perl hash structure itself:
-C<hash_fv()>/C<hash_min()> variants are up to 1000% faster!
+Note that this is the slowest form due to the (computational) complexity of the L<associative array|https://en.wikipedia.org/wiki/Associative_array> data structure itself:
+C<hash_fv()>/C<hash_min()> variants are up to 260% faster!
 
 =head2 hash_fv($octets, $n)
 
@@ -129,7 +129,7 @@ In fact, L<Text::SpeedyFx> constructor accepts bit range between 8 and 18 to add
 =head2 LATIN-1 SUPPORT
 
 8 bit address space has one special meaning: it completely disables multibyte support.
-In 8 bit mode, each instance will only allocate 256 bytes and hashing will run up to 300% faster!
+In 8 bit mode, each instance will only allocate 256 bytes and hashing will run up to 340% faster!
 Tokenization will fallback to I<ISO 8859-1 West European languages (Latin-1)> character definitions.
 
 =head1 BENCHMARK
@@ -156,13 +156,13 @@ F<enwik8> from the L<Large Text Compression Benchmark|https://cs.fit.edu/~mmahon
 
 =back
 
-                      Rate murmur_utf8 hash_utf8    hash hash_fv_utf8 hash_min hash_fv
-    murmur_utf8     6 MB/s          --      -53%    -62%         -87%     -97%    -97%
-    hash_utf8      13 MB/s        111%        --    -19%         -73%     -93%    -93%
-    hash           16 MB/s        161%       23%      --         -67%     -91%    -92%
-    hash_fv_utf8   49 MB/s        693%      275%    204%           --     -73%    -75%
-    hash_min      179 MB/s       2815%     1278%   1018%         267%       --     -7%
-    hash_fv       193 MB/s       3045%     1387%   1106%         296%       8%      --
+                       Rate murmur_utf8 hash_utf8 hash_min_utf8  hash hash_fv hash_min
+    murmur_utf8      6 MB/s          --      -79%          -86%  -89%    -97%     -97%
+    hash_utf8       30 MB/s        376%        --          -35%  -47%    -84%     -85%
+    hash_min_utf8   47 MB/s        637%       55%            --  -18%    -76%     -77%
+    hash            58 MB/s        803%       90%           23%    --    -70%     -72%
+    hash_fv        194 MB/s       2946%      541%          313%  237%      --      -6%
+    hash_min       206 MB/s       3143%      582%          340%  259%      6%       --
 
 All the tests except the ones with C<_utf8> suffix were made in L<Latin-1 mode|/UNICODE SUPPORT>.
 For comparison, C<murmur_utf8> was implemented using L<Digest::MurmurHash> hasher and native regular expression tokenizer:
@@ -171,6 +171,30 @@ For comparison, C<murmur_utf8> was implemented using L<Digest::MurmurHash> hashe
         while $data =~ /(\w+)/gx;
 
 See also the F<eg/benchmark.pl> script.
+
+=head1 CAVEAT
+
+For performance reasons, C<hash()> method returns a L<tied hash|perltie> which is an interface to
+L<nedtries|http://www.nedprod.com/programs/portable/nedtries/>.
+The interesting property of a L<trie data structure|https://en.wikipedia.org/wiki/Trie>
+is that the keys are "nearly sorted" (and the first key is guaranteed to be the lowest), so:
+
+    # This:
+    $fv = $sfx->hash($data);
+    ($min) = each %$fv;
+    # Is the same as this:
+    ($min) = $sfx->hash_min($data);
+    # (albeit the later being 2x faster)
+
+The downside is the magic involved, the C<delete> breaking the key order, and the memory usage.
+The hardcoded limit is 524288 unique keys per result, which consumes ~25MB of RAM on a 64-bit architecture.
+Exceeding this will C<croak> with the message I<"too many unique tokens in a single data chunk">.
+The only way to raise this limit is by recompilation of the XS module:
+
+    perl Makefile.PL DEFINE=-DMAX_TRIE_SIZE=2097152
+    make
+    make test
+    make install
 
 =head1 REFERENCES
 
@@ -200,7 +224,7 @@ Stanislaw Pusep <stas@sysd.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 by Stanislaw Pusep.
+This software is copyright (c) 2013 by Stanislaw Pusep.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

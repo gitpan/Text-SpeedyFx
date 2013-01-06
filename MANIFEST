@@ -11,12 +11,13 @@ bin/minhash_cmp
 bin/uniq_wc
 dist.ini
 eg/benchmark.pl
-inc/SFXMakeMaker.pm
 lib/Text/SpeedyFx.pm
+nedtrie.h
 perlcritic.rc
 ppport.h
 t/00-compile.t
 t/00-load.t
+t/05-nedtrie.t
 t/10-tiny.t
 t/20-small.t
 t/30-latin1.t

@@ -1,6 +1,37 @@
 Changelog for Text-SpeedyFx
 
-0.008 2013-01-01T21:37:48
+0.009 2013-01-06T22:39:41
+ [Stanislaw Pusep <creaktive@gmail.com>]
+ - nedtrie test
+
+ - speedup
+
+ - documented the nedtries caveat
+
+ - safety check
+
+ - DELETE implemented
+
+ - README.pod update
+
+ - benchmark update
+
+ - major reorganization
+
+ - ++magic
+
+ - tied implementation complete
+
+ - tied NEDTRIE interface
+
+ - removed unnecessary speedyfx_store()
+
+ - realloc() breaks pointers on Linux
+
+ - ++overengineering
+
+
+v0.008 2013-01-01T21:36:52
  [Stanislaw Pusep <creaktive@gmail.com>]
  - renamed cosine_sim to cosine_cmp (to keep consistence with minhash_cmp)
 
