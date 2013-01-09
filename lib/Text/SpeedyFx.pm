@@ -7,7 +7,7 @@ use warnings;
 
 use base q(Exporter);
 
-our $VERSION = '0.009'; # VERSION
+our $VERSION = '0.010'; # VERSION
 
 require XSLoader;
 XSLoader::load('Text::SpeedyFx', $VERSION);
@@ -26,7 +26,7 @@ Text::SpeedyFx - tokenize/hash large amount of strings efficiently
 
 =head1 VERSION
 
-version 0.009
+version 0.010
 
 =head1 SYNOPSIS
 
@@ -176,6 +176,8 @@ See also the F<eg/benchmark.pl> script.
 
 For performance reasons, C<hash()> method returns a L<tied hash|perltie> which is an interface to
 L<nedtries|http://www.nedprod.com/programs/portable/nedtries/>.
+While this seems controversal as L<perltie> interface increases the overhead, the overall result
+is positive, since the I<feature vector> generation step overrides the slow interface (B<beware: magic!!!>).
 The interesting property of a L<trie data structure|https://en.wikipedia.org/wiki/Trie>
 is that the keys are "nearly sorted" (and the first key is guaranteed to be the lowest), so:
 
@@ -186,9 +188,8 @@ is that the keys are "nearly sorted" (and the first key is guaranteed to be the 
     ($min) = $sfx->hash_min($data);
     # (albeit the later being 2x faster)
 
-The downside is the magic involved, the C<delete> breaking the key order, and the memory usage.
 The hardcoded limit is 524288 unique keys per result, which consumes ~25MB of RAM on a 64-bit architecture.
-Exceeding this will C<croak> with the message I<"too many unique tokens in a single data chunk">.
+Exceeding this will C<croak> with the message I<"too many unique tokens in a single data chunk"> (dynamic allocation not yet supported).
 The only way to raise this limit is by recompilation of the XS module:
 
     perl Makefile.PL DEFINE=-DMAX_TRIE_SIZE=2097152

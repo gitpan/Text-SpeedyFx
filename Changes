@@ -1,6 +1,15 @@
 Changelog for Text-SpeedyFx
 
-0.009 2013-01-06T22:39:41
+0.010 2013-01-09T14:33:44
+ [Stanislaw Pusep <creaktive@gmail.com>]
+ - documentation improvement
+
+ - fixed undefined symbol: DPPP_my_newSVpvn_flags
+
+ - nedtrie CLEAR test
+
+
+v0.009 2013-01-06T22:37:32
  [Stanislaw Pusep <creaktive@gmail.com>]
  - nedtrie test
 

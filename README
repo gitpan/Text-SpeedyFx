@@ -2,7 +2,7 @@ NAME
     Text::SpeedyFx - tokenize/hash large amount of strings efficiently
 
 VERSION
-    version 0.009
+    version 0.010
 
 SYNOPSIS
         use Data::Dumper;
@@ -129,10 +129,13 @@ BENCHMARK
 CAVEAT
     For performance reasons, "hash()" method returns a tied hash which is an
     interface to nedtries
-    <http://www.nedprod.com/programs/portable/nedtries/>. The interesting
-    property of a trie data structure <https://en.wikipedia.org/wiki/Trie>
-    is that the keys are "nearly sorted" (and the first key is guaranteed to
-    be the lowest), so:
+    <http://www.nedprod.com/programs/portable/nedtries/>. While this seems
+    controversal as perltie interface increases the overhead, the overall
+    result is positive, since the *feature vector* generation step overrides
+    the slow interface (beware: magic!!!). The interesting property of a
+    trie data structure <https://en.wikipedia.org/wiki/Trie> is that the
+    keys are "nearly sorted" (and the first key is guaranteed to be the
+    lowest), so:
 
         # This:
         $fv = $sfx->hash($data);
@@ -141,12 +144,11 @@ CAVEAT
         ($min) = $sfx->hash_min($data);
         # (albeit the later being 2x faster)
 
-    The downside is the magic involved, the "delete" breaking the key order,
-    and the memory usage. The hardcoded limit is 524288 unique keys per
-    result, which consumes ~25MB of RAM on a 64-bit architecture. Exceeding
-    this will "croak" with the message *"too many unique tokens in a single
-    data chunk"*. The only way to raise this limit is by recompilation of
-    the XS module:
+    The hardcoded limit is 524288 unique keys per result, which consumes
+    ~25MB of RAM on a 64-bit architecture. Exceeding this will "croak" with
+    the message *"too many unique tokens in a single data chunk"* (dynamic
+    allocation not yet supported). The only way to raise this limit is by
+    recompilation of the XS module:
 
         perl Makefile.PL DEFINE=-DMAX_TRIE_SIZE=2097152
         make
