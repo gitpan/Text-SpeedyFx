@@ -1,6 +1,10 @@
 Changelog for Text-SpeedyFx
 
-0.011 2014-06-20T12:57:24
+0.012 2014-12-29T12:02:05
+ - Dist::Zilla maintenance (Stanislaw Pusep)
+ - Fix for issue #2 (Stanislaw Pusep)
+
+0.011 2014-06-20T12:56:59
  - Dist::Zilla maintenance (Stanislaw Pusep)
  - Documentation update (Stanislaw Pusep)
  - drop PWP::Encoding dependency (Sergey Romanov)

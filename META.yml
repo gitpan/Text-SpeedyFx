@@ -4,10 +4,8 @@ author:
   - 'Stanislaw Pusep <stas@sysd.org>'
 build_requires:
   perl: '5.008'
-configure_requires:
-  ExtUtils::MakeMaker: '6.30'
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 5.019, CPAN::Meta::Converter version 2.141520'
+generated_by: 'Dist::Zilla version 5.029, CPAN::Meta::Converter version 2.143240'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -21,6 +19,6 @@ resources:
   bugtracker: https://github.com/creaktive/Text-SpeedyFx/issues
   homepage: https://github.com/creaktive/Text-SpeedyFx
   repository: git://github.com/creaktive/Text-SpeedyFx.git
-version: '0.011'
+version: '0.012'
 x_contributors:
   - 'Sergey Romanov <sromanov-dev@yandex.ru>'

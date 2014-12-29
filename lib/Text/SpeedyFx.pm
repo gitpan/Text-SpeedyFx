@@ -7,7 +7,7 @@ use warnings;
 
 use base q(Exporter);
 
-our $VERSION = '0.011'; # VERSION
+our $VERSION = '0.012'; # VERSION
 
 require XSLoader;
 XSLoader::load('Text::SpeedyFx', $VERSION);
@@ -26,7 +26,7 @@ Text::SpeedyFx - tokenize/hash large amount of strings efficiently
 
 =head1 VERSION
 
-version 0.011
+version 0.012
 
 =head1 SYNOPSIS
 
@@ -228,5 +228,11 @@ This software is copyright (c) 2014 by Stanislaw Pusep.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
+
+=head1 CONTRIBUTOR
+
+=for stopwords Sergey Romanov
+
+Sergey Romanov <sromanov-dev@yandex.ru>
 
 =cut
